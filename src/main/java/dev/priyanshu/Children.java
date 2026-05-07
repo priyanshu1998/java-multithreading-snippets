@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 public class Children {
     public static final Logger logger = LogManager.getLogger();
 
-    private  static final Thread throwIllegalStateExceptionThread = new Thread(()->{
+    private static final Thread throwIllegalStateExceptionThread = new Thread(() -> {
         var t = Thread.currentThread();
         ThreadContext.put("threadType", "worker");
         logger.info("Name: {}", t.getName());
@@ -18,19 +18,21 @@ public class Children {
     });
 
 
-    public static Supplier<Thread> throwIllegalStateExceptionThreadSupplier(){
+    public static Supplier<Thread> throwIllegalStateExceptionThreadSupplier(String name) {
         var thread = throwIllegalStateExceptionThread;
 
-        thread.setName("child");
+        var parentId = Thread.currentThread().threadId();
+        thread.setName(String.format("%d::%s", parentId, name));
         thread.setPriority(Thread.MAX_PRIORITY);
-        thread.setUncaughtExceptionHandler((t,e)->{
+        thread.setUncaughtExceptionHandler((t, e) -> {
             logger.error("A exception has occurred on tid: {}", t.threadId());
             logger.error("Message: ", e);
         });
 
-        return ()-> thread;
+        return () -> thread;
     }
 
-
-
+    public static Supplier<Thread> throwIllegalStateExceptionThreadSupplier() {
+        return throwIllegalStateExceptionThreadSupplier("child");
+    }
 }
